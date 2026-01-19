@@ -4,40 +4,33 @@
 #include <BLEAdvertisedDevice.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
-#include <WiFiClientSecure.h>  // or WiFiClient for unsecured
+#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 
-
-
-// ——— Wi-Fi and MQTT settings ———
 const char* ssid       = "YOUR_SSID";
 const char* password   = "YOUR_PASS";
 const char* mqttServer = "broker.example.com";
 const uint16_t mqttPort= 1883;
-const char* mqttUser   = "user";      // if needed
-const char* mqttPass   = "pass";      // if needed
+const char* mqttUser   = "user";
+const char* mqttPass   = "pass";
 
 WiFiClient     wifiClient;
 PubSubClient   mqtt(wifiClient);
 
-// ——— BLE settings ———
-int scanTime = 2; //2s scanning 
+int scanTime = 2; //2s scanning
 int cartId = 0x1;
 StaticJsonDocument<200> payload;
 
 BLEScan* pBLEScan;
 BLEAdvertisedDevice* nearestDevices[3];
 
-void find3Nearest(BLEScanResults* foundDevices) {  // Changed parameter name for clarity
-    // Reset globals
+void find3Nearest(BLEScanResults* foundDevices) {
     nearestDevices[0] = nearestDevices[1] = nearestDevices[2] = nullptr;
 
-    // Hold the top-3 RSSI values
     int rssi1 = std::numeric_limits<int>::min();
     int rssi2 = rssi1;
     int rssi3 = rssi1;
 
-    // Correct way to iterate through BLEScanResults
     for (int i = 0; i < foundDevices->getCount(); i++) {
         BLEAdvertisedDevice* dev = foundDevices->getDevice(i);
         int r = dev->getRSSI();
@@ -67,7 +60,6 @@ void connectMQTT() {
   mqtt.setServer(mqttServer, mqttPort);
   while (!mqtt.connected()) {
     if (mqtt.connect("ESP32Node", mqttUser, mqttPass)) {
-      // connected
     } else {
       delay(500);
     }
@@ -82,7 +74,7 @@ void setup() {
   connectMQTT();
   BLEDevice::init("");
   pBLEScan = BLEDevice::getScan();
-  pBLEScan->setActiveScan(true); 
+  pBLEScan->setActiveScan(true);
   pBLEScan->setInterval(100);
   pBLEScan->setWindow(99);
 }
@@ -92,7 +84,7 @@ void loop() {
   BLEScanResults *foundDevices = pBLEScan->start(scanTime);
   //reset the json payload
   payload.clear();
-  find3Nearest(foundDevices); //extracts the 3 nearest beacons from the scan 
+  find3Nearest(foundDevices); //extracts the 3 nearest beacons from the scan
 
   payload[nearestDevices[0]->getAddress().toString().c_str()] = nearestDevices[0]->getRSSI();
   payload[nearestDevices[1]->getAddress().toString().c_str()] = nearestDevices[1]->getRSSI();
@@ -103,7 +95,7 @@ void loop() {
   Serial.println(printablePayload);
 
 
-  //free the buffers 
-  pBLEScan->clearResults();   
+  //free the buffers
+  pBLEScan->clearResults();
   delay(500);
 }

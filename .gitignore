@@ -1,0 +1,30 @@
+# Environment variables
+.env
+Ble/.env
+.env.local
+
+# Build files
+build/
+*.o
+*.d
+*.hex
+*.bin
+
+# IDE specific files
+.vscode/
+*.code-workspace
+
+# ESP32 specific
+sdkconfig
+sdkconfig.old
+
+# Dependencies
+components/
+managed_components/
+
+# Logs
+*.log
+
+# System Files
+.DS_Store
+Thumbs.db
